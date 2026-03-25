@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Numaratör</title>
+<style>
+  body {
+    margin: 0;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+  }
+
+  #num {
+    font-size: 40vw;
+    font-weight: bold;
+    color: black;
+  }
+</style>
+</head>
+<body>
+
+<div id="num">1</div>
+
+<audio id="ding" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+<script>
+let num = 1;
+const max = 96;
+
+const display = document.getElementById("num");
+const sound = document.getElementById("ding");
+
+function update() {
+  display.textContent = num;
+  sound.currentTime = 0;
+  sound.play();
+}
+
+function next() {
+  num++;
+  if (num > max) num = 1;
+  update();
+}
+
+function prev() {
+  num--;
+  if (num < 1) num = max;
+  update();
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") next();       // OK
+  if (e.key === "ArrowRight") next();  // sağ
+  if (e.key === "ArrowLeft") prev();   // sol
+});
+</script>
+
+</body>
+</html>
