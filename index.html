@@ -1,104 +1,112 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Numaratör</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numaratör</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
 
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-  }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-  #num {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 40vw;
-    font-weight: bold;
-    color: black;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  /* görünmeyen alanlar */
-  .zone {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 50%;
-  }
-
-  #leftZone {
-    left: 0;
-  }
-
-  #rightZone {
-    right: 0;
-  }
-</style>
+    #num {
+      font-size: 40vw;
+      font-weight: bold;
+      color: black;
+      line-height: 1;
+      pointer-events: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<div id="num">1</div>
+  <div id="num">1</div>
 
-<div id="leftZone" class="zone"></div>
-<div id="rightZone" class="zone"></div>
+  <script>
+    let num = 1;
+    const max = 96;
+    const display = document.getElementById("num");
 
-<audio id="ding" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+    let audioCtx = null;
+    let lastClickTime = 0;
 
-<script>
-let num = 1;
-const max = 96;
+    function ensureAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+    }
 
-const display = document.getElementById("num");
-const sound = document.getElementById("ding");
+    function playDinDon() {
+      ensureAudio();
 
-function playSound() {
-  sound.currentTime = 0;
-  sound.play().catch(()=>{});
-}
+      const now = audioCtx.currentTime;
 
-function update() {
-  display.textContent = num;
-  playSound();
-}
+      // 1. ton: "din"
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(1046.5, now); // Do6 civarı
+      gain1.gain.setValueAtTime(0.0001, now);
+      gain1.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.22);
 
-function next() {
-  num++;
-  if (num > max) num = 1;
-  update();
-}
+      // 2. ton: "don"
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(783.99, now + 0.16); // Sol5 civarı
+      gain2.gain.setValueAtTime(0.0001, now + 0.16);
+      gain2.gain.exponentialRampToValueAtTime(0.16, now + 0.18);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start(now + 0.16);
+      osc2.stop(now + 0.42);
+    }
 
-function prev() {
-  num--;
-  if (num < 1) num = max;
-  update();
-}
+    function update() {
+      display.textContent = num;
+      playDinDon();
+    }
 
-// SOL ALAN = GERİ
-document.getElementById("leftZone").addEventListener("click", prev);
+    function next() {
+      num++;
+      if (num > max) num = 1;
+      update();
+    }
 
-// SAĞ ALAN = İLERİ
-document.getElementById("rightZone").addEventListener("click", next);
+    // Sadece click ile ilerlesin
+    document.addEventListener("click", function () {
+      const now = Date.now();
 
-// ORTA (herhangi bir yere tıklama fallback)
-document.addEventListener("click", function(e) {
-  const x = e.clientX;
-  const width = window.innerWidth;
+      // Aynı click'in iki kez algılanmasını önlemek için küçük koruma
+      if (now - lastClickTime < 300) return;
+      lastClickTime = now;
 
-  if (x > width / 2) next();
-  else prev();
-});
-</script>
+      next();
+    });
+  </script>
 
 </body>
 </html>
