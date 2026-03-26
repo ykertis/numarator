@@ -1,112 +1,39 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Numaratör</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: white;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<script>
+function playDinDon() {
+  ensureAudio();
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+  const now = audioCtx.currentTime;
 
-    #num {
-      font-size: 40vw;
-      font-weight: bold;
-      color: black;
-      line-height: 1;
-      pointer-events: none;
-    }
-  </style>
-</head>
-<body>
+  // 1. ton: "dinnnnn"
+  const osc1 = audioCtx.createOscillator();
+  const gain1 = audioCtx.createGain();
+  osc1.type = "sine";
+  osc1.frequency.setValueAtTime(1046.5, now);
 
-  <div id="num">1</div>
+  gain1.gain.setValueAtTime(0.0001, now);
+  gain1.gain.exponentialRampToValueAtTime(0.22, now + 0.03);
+  gain1.gain.exponentialRampToValueAtTime(0.12, now + 0.45);
+  gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
 
-  <script>
-    let num = 1;
-    const max = 96;
-    const display = document.getElementById("num");
+  osc1.connect(gain1);
+  gain1.connect(audioCtx.destination);
+  osc1.start(now);
+  osc1.stop(now + 0.95);
 
-    let audioCtx = null;
-    let lastClickTime = 0;
+  // 2. ton: "doonnnnn"
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = "sine";
+  osc2.frequency.setValueAtTime(783.99, now + 0.42);
 
-    function ensureAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === "suspended") {
-        audioCtx.resume();
-      }
-    }
+  gain2.gain.setValueAtTime(0.0001, now + 0.42);
+  gain2.gain.exponentialRampToValueAtTime(0.20, now + 0.46);
+  gain2.gain.exponentialRampToValueAtTime(0.11, now + 0.95);
+  gain2.gain.exponentialRampToValueAtTime(0.0001, now + 1.55);
 
-    function playDinDon() {
-      ensureAudio();
-
-      const now = audioCtx.currentTime;
-
-      // 1. ton: "din"
-      const osc1 = audioCtx.createOscillator();
-      const gain1 = audioCtx.createGain();
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(1046.5, now); // Do6 civarı
-      gain1.gain.setValueAtTime(0.0001, now);
-      gain1.gain.exponentialRampToValueAtTime(0.18, now + 0.01);
-      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
-      osc1.connect(gain1);
-      gain1.connect(audioCtx.destination);
-      osc1.start(now);
-      osc1.stop(now + 0.22);
-
-      // 2. ton: "don"
-      const osc2 = audioCtx.createOscillator();
-      const gain2 = audioCtx.createGain();
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(783.99, now + 0.16); // Sol5 civarı
-      gain2.gain.setValueAtTime(0.0001, now + 0.16);
-      gain2.gain.exponentialRampToValueAtTime(0.16, now + 0.18);
-      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.42);
-      osc2.connect(gain2);
-      gain2.connect(audioCtx.destination);
-      osc2.start(now + 0.16);
-      osc2.stop(now + 0.42);
-    }
-
-    function update() {
-      display.textContent = num;
-      playDinDon();
-    }
-
-    function next() {
-      num++;
-      if (num > max) num = 1;
-      update();
-    }
-
-    // Sadece click ile ilerlesin
-    document.addEventListener("click", function () {
-      const now = Date.now();
-
-      // Aynı click'in iki kez algılanmasını önlemek için küçük koruma
-      if (now - lastClickTime < 300) return;
-      lastClickTime = now;
-
-      next();
-    });
-  </script>
-
-</body>
-</html>
+  osc2.connect(gain2);
+  gain2.connect(audioCtx.destination);
+  osc2.start(now + 0.42);
+  osc2.stop(now + 1.55);
+}
+</script>
