@@ -1,137 +1,104 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Numaratör</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: white;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numaratör</title>
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      outline: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
 
-    #num {
-      font-size: 40vw;
-      font-weight: 700;
-      color: black;
-      line-height: 1;
-    }
-  </style>
+  #num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40vw;
+    font-weight: bold;
+    color: black;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* görünmeyen alanlar */
+  .zone {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+  }
+
+  #leftZone {
+    left: 0;
+  }
+
+  #rightZone {
+    right: 0;
+  }
+</style>
 </head>
-<body tabindex="0">
 
-  <div id="num">1</div>
+<body>
 
-  <audio id="ding" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-  </audio>
+<div id="num">1</div>
 
-  <script>
-    let num = 1;
-    const min = 1;
-    const max = 96;
+<div id="leftZone" class="zone"></div>
+<div id="rightZone" class="zone"></div>
 
-    const display = document.getElementById("num");
-    const sound = document.getElementById("ding");
+<audio id="ding" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
 
-    function playDing() {
-      try {
-        sound.currentTime = 0;
-        sound.play().catch(() => {});
-      } catch (e) {}
-    }
+<script>
+let num = 1;
+const max = 96;
 
-    function update() {
-      display.textContent = num;
-      playDing();
-    }
+const display = document.getElementById("num");
+const sound = document.getElementById("ding");
 
-    function next() {
-      num++;
-      if (num > max) num = min;
-      update();
-    }
+function playSound() {
+  sound.currentTime = 0;
+  sound.play().catch(()=>{});
+}
 
-    function prev() {
-      num--;
-      if (num < min) num = max;
-      update();
-    }
+function update() {
+  display.textContent = num;
+  playSound();
+}
 
-    function keepFocus() {
-      document.body.focus();
-    }
+function next() {
+  num++;
+  if (num > max) num = 1;
+  update();
+}
 
-    // Sayfa açılınca focus al
-    window.addEventListener("load", () => {
-      keepFocus();
-    });
+function prev() {
+  num--;
+  if (num < 1) num = max;
+  update();
+}
 
-    // Her tıklamada tekrar focus al
-    document.addEventListener("click", () => {
-      next();       // Ortadaki tuş mouse click gibi davranırsa ileri atsın
-      keepFocus();
-    });
+// SOL ALAN = GERİ
+document.getElementById("leftZone").addEventListener("click", prev);
 
-    // Tuşları yakala
-    document.addEventListener("keydown", function(e) {
-      const key = e.key;
-      const code = e.keyCode;
+// SAĞ ALAN = İLERİ
+document.getElementById("rightZone").addEventListener("click", next);
 
-      // Tarayıcının varsayılan hareketlerini engelle
-      if (
-        key === "ArrowRight" || key === "ArrowLeft" ||
-        key === "ArrowUp" || key === "ArrowDown" ||
-        key === "Enter" || key === "NumpadEnter" ||
-        code === 21 || code === 22 || code === 19 || code === 20 ||
-        code === 13 || code === 23
-      ) {
-        e.preventDefault();
-      }
+// ORTA (herhangi bir yere tıklama fallback)
+document.addEventListener("click", function(e) {
+  const x = e.clientX;
+  const width = window.innerWidth;
 
-      // İleri
-      if (key === "ArrowRight" || code === 22) {
-        next();
-        return;
-      }
+  if (x > width / 2) next();
+  else prev();
+});
+</script>
 
-      // Geri
-      if (key === "ArrowLeft" || code === 21) {
-        prev();
-        return;
-      }
-
-      // Ortadaki tuş / Enter
-      if (
-        key === "Enter" ||
-        key === "NumpadEnter" ||
-        key === "OK" ||
-        code === 13 ||
-        code === 23
-      ) {
-        next();
-        return;
-      }
-    });
-
-    // Focus kaçarsa geri al
-    document.addEventListener("mousemove", keepFocus);
-    document.addEventListener("mousedown", keepFocus);
-    document.addEventListener("touchstart", keepFocus);
-  </script>
 </body>
 </html>
